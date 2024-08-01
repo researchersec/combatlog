@@ -1,0 +1,13 @@
+/* styles.css */
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+#upload-section {
+    margin-bottom: 20px;
+}
+
+#result-section {
+    margin-top: 20px;
+}
