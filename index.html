@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log File Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="upload-section">
+        <h1>Upload Combat Log</h1>
+        <input type="file" id="file-input" accept=".txt">
+        <button onclick="processFile()">Analyze</button>
+    </div>
+    <div id="result-section">
+        <h2>Analysis Results</h2>
+        <pre id="results"></pre>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
