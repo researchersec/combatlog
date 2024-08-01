@@ -1,52 +1,83 @@
-document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-
-function handleFileUpload(event) {
+document.getElementById('fileInput').addEventListener('change', function(event) {
     const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const content = e.target.result;
-            parseAndDisplayGear(content);
-        };
-        reader.readAsText(file);
-    }
-}
+    if (!file) return;
 
-function parseAndDisplayGear(content) {
-    // Assuming content follows the format: "ItemID: [ItemID], ilvl: [ilvl], Enchants: [EnchantID1, EnchantID2, EnchantID3]"
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
+        processCombatLog(content);
+    };
+    reader.readAsText(file);
+});
+
+function processCombatLog(content) {
     const lines = content.split('\n');
-    const gearOutput = document.getElementById('gear-output');
-    gearOutput.innerHTML = ''; // Clear previous content
+    const totalLines = lines.length;
+    const gearInfo = {};
+    const gearPattern = /(\d+) (\d+)(?: (\d+))?(?: (\d+))?(?: (\d+))?/;
+    const progressBar = document.getElementById('progress-bar');
+    const progressContainer = document.getElementById('progress-container');
 
-    lines.forEach(line => {
-        if (line.trim()) {
-            const [itemPart, ilvlPart, enchantsPart] = line.split(', ');
-            const itemId = itemPart.split(': ')[1];
-            const ilvl = ilvlPart.split(': ')[1];
-            const enchantIds = enchantsPart ? enchantsPart.split(': ')[1].split(', ') : [];
+    progressContainer.style.display = 'block';
 
-            const listItem = document.createElement('li');
-            const itemLink = document.createElement('a');
-            itemLink.href = `https://www.wowhead.com/item=${itemId}`;
-            itemLink.rel = 'item';
-            itemLink.textContent = `Item ${itemId} - ilvl ${ilvl}`;
-            listItem.appendChild(itemLink);
+    lines.forEach((line, index) => {
+        updateProgressBar(index, totalLines);
 
-            if (enchantIds.length > 0) {
-                const enchantList = document.createElement('ul');
-                enchantIds.forEach(enchantId => {
-                    const enchantItem = document.createElement('li');
-                    const enchantLink = document.createElement('a');
-                    enchantLink.href = `https://www.wowhead.com/spell=${enchantId}`;
-                    enchantLink.rel = 'spell';
-                    enchantLink.textContent = `Enchant ${enchantId}`;
-                    enchantItem.appendChild(enchantLink);
-                    enchantList.appendChild(enchantItem);
-                });
-                listItem.appendChild(enchantList);
-            }
+        const parts = line.split(': ');
+        const key = parts[0];
+        const value = parts[1];
 
-            gearOutput.appendChild(listItem);
+        if (key === "Equipment") {
+            const items = value.split(',');
+            items.forEach(item => {
+                const match = item.trim().match(gearPattern);
+                if (match) {
+                    const itemId = match[1];
+                    const ilvl = match[2];
+                    const enchantments = match.slice(3).filter(Boolean);
+
+                    gearInfo[itemId] = { ilvl, enchantments };
+                }
+            });
         }
     });
+
+    displayGearInfo(gearInfo);
+    updateProgressBar(totalLines, totalLines);
+}
+
+function updateProgressBar(current, total) {
+    const progressBar = document.getElementById('progress-bar');
+    const percentage = Math.round((current / total) * 100);
+    progressBar.style.width = percentage + '%';
+    progressBar.innerText = percentage + '%';
+}
+
+function displayGearInfo(gearInfo) {
+    const output = document.getElementById('output');
+    output.innerHTML = "";
+
+    for (const itemId in gearInfo) {
+        const item = gearInfo[itemId];
+        const ilvl = item.ilvl;
+        const enchantments = item.enchantments;
+
+        let enchantLinks = enchantments.map(enchantId => {
+            return `<a href="https://www.wowhead.com/spell=${enchantId}" rel="enchantment">${enchantId}</a>`;
+        }).join(', ');
+
+        if (!enchantLinks) enchantLinks = 'None';
+
+        const itemLink = `<a href="https://www.wowhead.com/item=${itemId}" rel="item">${itemId}</a>`;
+        output.innerHTML += `Item: ${itemLink}, ilvl: ${ilvl}, Enchantments: ${enchantLinks}\n`;
+    }
+
+    // Activate Wowhead tooltips
+    if (typeof whTooltips !== 'undefined') {
+        whTooltips.refreshLinks();
+    }
+
+    // Hide progress bar after processing
+    const progressContainer = document.getElementById('progress-container');
+    progressContainer.style.display = 'none';
 }
