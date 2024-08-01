@@ -1,13 +1,26 @@
-/* styles.css */
 body {
     font-family: Arial, sans-serif;
     padding: 20px;
 }
 
-#upload-section {
-    margin-bottom: 20px;
+h1, h2 {
+    color: #2c3e50;
 }
 
-#result-section {
-    margin-top: 20px;
+#gear-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+#gear-list li {
+    margin: 5px 0;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+a:hover {
+    text-decoration: underline;
 }
