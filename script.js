@@ -12,17 +12,35 @@ function handleFileSelect(event) {
     }
 }
 
+function logMessage(message) {
+    const consoleLogDiv = document.getElementById('consoleLog');
+    consoleLogDiv.innerHTML += `<p>${message}</p>`;
+}
+
+function updateProgress(percentage) {
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    progressBar.value = percentage;
+    progressText.textContent = `${percentage}%`;
+}
+
 function parseCombatLog(text) {
     const resultDiv = document.getElementById('result');
+    const consoleLogDiv = document.getElementById('consoleLog');
     resultDiv.innerHTML = ''; // Clear previous results
+    consoleLogDiv.innerHTML = ''; // Clear previous logs
+    updateProgress(0); // Initialize progress
 
-    // Example parsing logic
     const lines = text.split('\n');
     let playerData = {};
     
-    lines.forEach(line => {
+    const totalLines = lines.length;
+    lines.forEach((line, index) => {
+        // Update progress
+        const percentage = Math.round((index / totalLines) * 100);
+        updateProgress(percentage);
+
         // Simple example of extracting gear and resistances
-        // This will depend on the actual log format
         if (line.includes('Gear:')) {
             const parts = line.split(' ');
             const playerName = parts[0];
@@ -32,6 +50,7 @@ function parseCombatLog(text) {
             } else {
                 playerData[playerName].gear = gear;
             }
+            logMessage(`Parsed gear for ${playerName}: ${gear}`);
         } else if (line.includes('Resistance:')) {
             const parts = line.split(' ');
             const playerName = parts[0];
@@ -41,8 +60,12 @@ function parseCombatLog(text) {
                 playerData[playerName] = { gear: '', resistances: {} };
             }
             playerData[playerName].resistances[resistanceType] = resistanceValue;
+            logMessage(`Parsed resistance for ${playerName}: ${resistanceType} - ${resistanceValue}`);
         }
     });
+
+    // Final progress update
+    updateProgress(100);
 
     // Display parsed data
     Object.keys(playerData).forEach(playerName => {
@@ -54,4 +77,6 @@ function parseCombatLog(text) {
         resultDiv.innerHTML += `<p>Gear: ${gear}</p>`;
         resultDiv.innerHTML += `<p>Resistances: ${resistances}</p>`;
     });
+
+    logMessage('Parsing completed.');
 }
