@@ -1,84 +1,52 @@
-document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+function parseCombatLog(fileContent) {
+    const lines = fileContent.split('\n');
+    const combatants = {}; // To store combatant names
 
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    const items = [];
+    let currentCombatant = null;
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const text = e.target.result;
-        processLogData(text);
-    };
-    reader.readAsText(file);
-}
-
-function processLogData(logData) {
-    const combatantPattern = /COMBATANT_INFO,(.*?),0,(\d+),(\d+),(\d+),(\d+),(\d+),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,(\d+),0,.*?\(\d+,\d+,\d+\),\(\),\[(.*?)\]/g;
-    const itemPattern = /\((\d+),(\d+),\((\d*),(\d*),(\d*)\),\(\),\(\)\)/g;
-
-    let combatants = {};
-    let match;
-
-    // Extract combatant information
-    while ((match = combatantPattern.exec(logData)) !== null) {
-        const combatantId = match[1];
-        const itemsInfo = match[8];
-
-        let items = [];
-        let itemMatch;
-        while ((itemMatch = itemPattern.exec(itemsInfo)) !== null) {
+    lines.forEach(line => {
+        if (line.startsWith('PARTY_KILL')) {
+            // Extract the combatant ID and name from the PARTY_KILL event
+            const parts = line.split(' ');
+            const combatantID = parts[1];
+            const combatantName = parts.slice(2).join(' '); // Assumes the name follows the ID
+            combatants[combatantID] = combatantName;
+        } else if (line.startsWith('ENCOUNTER_START')) {
+            // Extract the combatant ID and name from the ENCOUNTER_START event
+            const parts = line.split(' ');
+            const combatantID = parts[1];
+            const combatantName = parts.slice(2).join(' '); // Assumes the name follows the ID
+            combatants[combatantID] = combatantName;
+        } else if (line.startsWith('UNIT_DIED')) {
+            // Extract the combatant ID and name from the UNIT_DIED event
+            const parts = line.split(' ');
+            const combatantID = parts[1];
+            const combatantName = parts.slice(2).join(' '); // Assumes the name follows the ID
+            combatants[combatantID] = combatantName;
+        } else if (line.startsWith('ITEM')) {
+            // Parse item data
+            const parts = line.split('\t');
+            const combatantID = parts[0];
+            const itemID = parts[1];
+            const itemLevel = parts[2];
+            const enchant = parts[3];
+            const gem1 = parts[4];
+            const gem2 = parts[5];
+            
+            // Get the combatant name
+            const combatantName = combatants[combatantID] || combatantID; // Use ID if name is unknown
+            
             items.push({
-                itemid: itemMatch[1],
-                ilvl: itemMatch[2],
-                enchant: itemMatch[3],
-                gem1: itemMatch[4],
-                gem2: itemMatch[5]
+                combatantName,
+                itemID,
+                itemLevel,
+                enchant,
+                gem1,
+                gem2
             });
         }
+    });
 
-        combatants[combatantId] = { items: items };
-    }
-
-    displayCombatants(combatants);
-}
-
-function displayCombatants(combatants) {
-    const resultDiv = document.getElementById('result');
-    resultDiv.innerHTML = '';
-
-    const table = document.createElement('table');
-    const thead = document.createElement('thead');
-    const tbody = document.createElement('tbody');
-
-    // Create table headers
-    const headerRow = document.createElement('tr');
-    headerRow.innerHTML = `
-        <th>Combatant ID</th>
-        <th>Item ID</th>
-        <th>Item Level</th>
-        <th>Enchant</th>
-        <th>Gem1</th>
-        <th>Gem2</th>
-    `;
-    thead.appendChild(headerRow);
-
-    // Populate table rows
-    for (const [combatantId, data] of Object.entries(combatants)) {
-        data.items.forEach(item => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${combatantId}</td>
-                <td>${item.itemid}</td>
-                <td>${item.ilvl}</td>
-                <td>${item.enchant}</td>
-                <td>${item.gem1}</td>
-                <td>${item.gem2}</td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
-
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    resultDiv.appendChild(table);
+    return items;
 }
