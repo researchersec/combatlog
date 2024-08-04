@@ -2,81 +2,83 @@ document.getElementById('fileInput').addEventListener('change', handleFileSelect
 
 function handleFileSelect(event) {
     const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const text = e.target.result;
-            parseCombatLog(text);
-        };
-        reader.readAsText(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        processLogData(text);
+    };
+    reader.readAsText(file);
 }
 
-function logMessage(message) {
-    const consoleLogDiv = document.getElementById('consoleLog');
-    consoleLogDiv.innerHTML += `<p>${message}</p>`;
-}
+function processLogData(logData) {
+    const combatantPattern = /COMBATANT_INFO,(.*?),0,(\d+),(\d+),(\d+),(\d+),(\d+),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,(\d+),0,.*?\(\d+,\d+,\d+\),\(\),\[(.*?)\]/g;
+    const itemPattern = /\((\d+),(\d+),\((\d*),(\d*),(\d*)\),\(\),\(\)\)/g;
 
-function updateProgress(percentage) {
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    progressBar.value = percentage;
-    progressText.textContent = `${percentage}%`;
-}
+    let combatants = {};
+    let match;
 
-function parseCombatLog(text) {
-    const resultDiv = document.getElementById('result');
-    const consoleLogDiv = document.getElementById('consoleLog');
-    resultDiv.innerHTML = ''; // Clear previous results
-    consoleLogDiv.innerHTML = ''; // Clear previous logs
-    updateProgress(0); // Initialize progress
+    // Extract combatant information
+    while ((match = combatantPattern.exec(logData)) !== null) {
+        const combatantId = match[1];
+        const itemsInfo = match[8];
 
-    const lines = text.split('\n');
-    let playerData = {};
-    
-    const totalLines = lines.length;
-    lines.forEach((line, index) => {
-        // Update progress
-        const percentage = Math.round((index / totalLines) * 100);
-        updateProgress(percentage);
-
-        // Simple example of extracting gear and resistances
-        if (line.includes('Gear:')) {
-            const parts = line.split(' ');
-            const playerName = parts[0];
-            const gear = parts.slice(1).join(' ');
-            if (!playerData[playerName]) {
-                playerData[playerName] = { gear: gear, resistances: {} };
-            } else {
-                playerData[playerName].gear = gear;
-            }
-            logMessage(`Parsed gear for ${playerName}: ${gear}`);
-        } else if (line.includes('Resistance:')) {
-            const parts = line.split(' ');
-            const playerName = parts[0];
-            const resistanceType = parts[1];
-            const resistanceValue = parts[2];
-            if (!playerData[playerName]) {
-                playerData[playerName] = { gear: '', resistances: {} };
-            }
-            playerData[playerName].resistances[resistanceType] = resistanceValue;
-            logMessage(`Parsed resistance for ${playerName}: ${resistanceType} - ${resistanceValue}`);
+        let items = [];
+        let itemMatch;
+        while ((itemMatch = itemPattern.exec(itemsInfo)) !== null) {
+            items.push({
+                itemid: itemMatch[1],
+                ilvl: itemMatch[2],
+                enchant: itemMatch[3],
+                gem1: itemMatch[4],
+                gem2: itemMatch[5]
+            });
         }
-    });
 
-    // Final progress update
-    updateProgress(100);
+        combatants[combatantId] = { items: items };
+    }
 
-    // Display parsed data
-    Object.keys(playerData).forEach(playerName => {
-        const data = playerData[playerName];
-        const gear = data.gear || 'N/A';
-        const resistances = Object.entries(data.resistances).map(([type, value]) => `${type}: ${value}`).join(', ');
+    displayCombatants(combatants);
+}
 
-        resultDiv.innerHTML += `<h2>${playerName}</h2>`;
-        resultDiv.innerHTML += `<p>Gear: ${gear}</p>`;
-        resultDiv.innerHTML += `<p>Resistances: ${resistances}</p>`;
-    });
+function displayCombatants(combatants) {
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = '';
 
-    logMessage('Parsing completed.');
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const tbody = document.createElement('tbody');
+
+    // Create table headers
+    const headerRow = document.createElement('tr');
+    headerRow.innerHTML = `
+        <th>Combatant ID</th>
+        <th>Item ID</th>
+        <th>Item Level</th>
+        <th>Enchant</th>
+        <th>Gem1</th>
+        <th>Gem2</th>
+    `;
+    thead.appendChild(headerRow);
+
+    // Populate table rows
+    for (const [combatantId, data] of Object.entries(combatants)) {
+        data.items.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${combatantId}</td>
+                <td>${item.itemid}</td>
+                <td>${item.ilvl}</td>
+                <td>${item.enchant}</td>
+                <td>${item.gem1}</td>
+                <td>${item.gem2}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    resultDiv.appendChild(table);
 }
