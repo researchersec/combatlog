@@ -5,29 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WoW Combat Log Analyzer</title>
     <style>
-        body { font-family: Arial, sans-serif; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f4f4f4; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        #container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        input[type="file"] {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>WoW Combat Log Analyzer</h1>
-    <input type="file" id="fileInput" />
-    <table id="resultsTable">
-        <thead>
-            <tr>
-                <th>Combatant Name</th>
-                <th>Item ID</th>
-                <th>Item Level</th>
-                <th>Enchant</th>
-                <th>Gem1</th>
-                <th>Gem2</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <div id="container">
+        <h1>WoW Combat Log Analyzer</h1>
+        <input type="file" id="fileInput" />
+        <table id="results">
+            <thead>
+                <tr>
+                    <th>Combatant ID</th>
+                    <th>Item ID</th>
+                    <th>Item Level</th>
+                    <th>Enchant</th>
+                    <th>Gem1</th>
+                    <th>Gem2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Results will be injected here -->
+            </tbody>
+        </table>
+    </div>
     <script src="analyzer.js"></script>
-    <script src="script.js"></script>
 </body>
 </html>
