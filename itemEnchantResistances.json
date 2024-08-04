@@ -1,5 +1,4 @@
 {
-    "1505": 20, # Libram of Resilience
-    "7564": 20  # Hydraxian
-    // Add more item IDs and their enchant resistances as needed
+    "1505": 20,  // Libram of Resilience
+    "7564": 20   // Hydraxian Coronation
 }
