@@ -67,9 +67,15 @@ async function displayEncounters(encounters) {
                 totalResistance += resistance;
                 totalEnchantResistance += enchantResistance;
 
+                const itemIconUrl = `https://wow.zamimg.com/images/wow/icons/medium/${itemInfo ? itemInfo.Display_lang.toLowerCase().replace(/ /g, '-') : 'inv_misc_questionmark'}.jpg`;
+
                 playerDiv.innerHTML += `
-                    <p>Item ID: ${item.itemid}, Item Level: ${item.ilvl}, Enchant: ${item.enchant}, Gem1: ${item.gem1}, Gem2: ${item.gem2}</p>
-                    <p>Display: ${itemInfo ? itemInfo.Display_lang : 'Unknown'}, Resistances[2]: ${resistance}, Enchant Resistances: ${enchantResistance}</p>
+                    <p>
+                        <img src="${itemIconUrl}" class="item-icon" alt="${itemInfo ? itemInfo.Display_lang : 'Unknown'}">
+                        <a href="https://www.wowhead.com/item=${item.itemid}" data-wowhead="item=${item.itemid}" target="_blank">${itemInfo ? itemInfo.Display_lang : 'Unknown Item'}</a><br>
+                        Item Level: ${item.ilvl}, Enchant: ${item.enchant}, Gem1: ${item.gem1}, Gem2: ${item.gem2}<br>
+                        Resistances[2]: ${resistance}, Enchant Resistances: ${enchantResistance}
+                    </p>
                 `;
             });
 
@@ -81,6 +87,11 @@ async function displayEncounters(encounters) {
 
         output.appendChild(encounterDiv);
     });
+
+    // Refresh WoWHead tooltips
+    if (typeof $WowheadPower !== 'undefined') {
+        $WowheadPower.refreshLinks();
+    }
 }
 
 function parseCombatantInfo(line) {
