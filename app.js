@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('logFile');
+    if (!fileInput) {
+        console.error('Element with ID "logFile" not found.');
+        return;
+    }
 
     fileInput.addEventListener('change', handleFileSelect, false);
 
