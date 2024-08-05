@@ -1,0 +1,13 @@
+{
+  "name": "wow-log-analyzer",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.4",
+    "vite": "^2.9.1"
+  }
+}
