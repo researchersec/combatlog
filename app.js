@@ -67,13 +67,13 @@ function parseCombatantInfo(line, combatantNames, itemSparseData, itemEnchantRes
     const parts = line.split(',');
     const playerId = parts[1];
     const gearInfoMatch = line.match(/\[(.*?)\]$/);
-    
+
     if (!gearInfoMatch) {
         console.error('Invalid gear info format:', line);
-        return { playerId, playerName: combatantNames[playerId] || playerId, resistances: 0 };
+        return { playerId, playerName: combatantNames[playerId] || playerId, resistances: 0, items: [] };
     }
-    
-    const gearInfoString = gearInfoMatch[1]; // Extract the part with gear info
+
+    const gearInfoString = gearInfoMatch[1];
     const gearInfo = parseGearInfo(gearInfoString);
     const playerName = combatantNames[playerId] || playerId;
 
@@ -94,7 +94,16 @@ function parseCombatantInfo(line, combatantNames, itemSparseData, itemEnchantRes
         return totalResistance;
     }, 0);
 
-    return { playerId, playerName, resistances };
+    const items = gearInfo.map(item => {
+        const itemId = item[0];
+        return {
+            id: itemId,
+            enchantmentId: item[2].length > 0 ? item[2][0] : null,
+            icon: `https://wow.zamimg.com/images/wow/icons/large/${itemId}.jpg`
+        };
+    });
+
+    return { playerId, playerName, resistances, items };
 }
 
 function parseGearInfo(gearInfoString) {
@@ -130,9 +139,31 @@ function displayEncounters(encounters) {
             resistanceInfo.textContent = `Resistance: ${player.resistances}`;
             playerDiv.appendChild(resistanceInfo);
 
+            player.items.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('item');
+
+                const itemIcon = document.createElement('img');
+                itemIcon.src = item.icon;
+                itemDiv.appendChild(itemIcon);
+
+                const itemLink = document.createElement('a');
+                itemLink.classList.add('item-link');
+                itemLink.href = `https://www.wowhead.com/item=${item.id}`;
+                itemLink.target = '_blank';
+                itemLink.rel = 'noopener noreferrer';
+                itemLink.textContent = `Item ${item.id}`;
+                itemDiv.appendChild(itemLink);
+
+                playerDiv.appendChild(itemDiv);
+            });
+
             encounterDiv.appendChild(playerDiv);
         });
 
         contentDiv.appendChild(encounterDiv);
     });
+
+    // Apply WoWHead tooltips
+    WH.Tooltips.refresh();
 }
