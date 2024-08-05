@@ -66,7 +66,8 @@ function csvToJSON(csv) {
 function parseCombatantInfo(line, combatantNames, itemSparseData, itemEnchantResistances) {
     const parts = line.split(',');
     const playerId = parts[1];
-    const gearInfo = JSON.parse(parts[28]);
+    const gearInfoString = line.match(/\[(.*?)\]\)$/)[1]; // Extract the part with gear info
+    const gearInfo = parseGearInfo(gearInfoString);
     const playerName = combatantNames[playerId] || playerId;
 
     const resistances = gearInfo.reduce((totalResistance, item) => {
@@ -87,6 +88,14 @@ function parseCombatantInfo(line, combatantNames, itemSparseData, itemEnchantRes
     }, 0);
 
     return { playerId, playerName, resistances };
+}
+
+function parseGearInfo(gearInfoString) {
+    return gearInfoString.split('),(').map(itemString => {
+        return itemString.replace(/[\[\]()]/g, '').split(',').map(value => {
+            return value.includes('(') ? value.split('(').map(val => val.replace(')', '')) : value;
+        });
+    });
 }
 
 function displayEncounters(encounters) {
