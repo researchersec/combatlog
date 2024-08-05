@@ -66,7 +66,14 @@ function csvToJSON(csv) {
 function parseCombatantInfo(line, combatantNames, itemSparseData, itemEnchantResistances) {
     const parts = line.split(',');
     const playerId = parts[1];
-    const gearInfoString = line.match(/\[(.*?)\]\)$/)[1]; // Extract the part with gear info
+    const gearInfoMatch = line.match(/\[(.*?)\]$/);
+    
+    if (!gearInfoMatch) {
+        console.error('Invalid gear info format:', line);
+        return { playerId, playerName: combatantNames[playerId] || playerId, resistances: 0 };
+    }
+    
+    const gearInfoString = gearInfoMatch[1]; // Extract the part with gear info
     const gearInfo = parseGearInfo(gearInfoString);
     const playerName = combatantNames[playerId] || playerId;
 
