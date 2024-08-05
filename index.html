@@ -2,39 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Combat Log Viewer</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .file-input {
-            margin: 20px 0;
-        }
-        .encounter, .player {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
-            margin: 10px 0;
-        }
-        .player {
-            background-color: #f9f9f9;
-        }
-        .resistance {
-            margin: 5px 0;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+    <script src="https://wow.zamimg.com/widgets/power.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Combat Log Viewer</h1>
-        <input type="file" id="logFileInput" class="file-input" accept=".txt" />
-        <div id="content"></div>
-    </div>
-    <script src="app.js"></script>
+    <input type="file" id="logFileInput" accept=".txt">
+    <div id="content"></div>
 </body>
 </html>
