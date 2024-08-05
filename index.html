@@ -2,14 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Combat Log Viewer</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="app.js" defer></script>
-    <script src="https://wow.zamimg.com/widgets/power.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WoW Log Analyzer</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .fight { margin-bottom: 20px; }
+        .player { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+        .player img { vertical-align: middle; }
+    </style>
 </head>
 <body>
+    <h1>World of Warcraft Log Analyzer</h1>
     <input type="file" id="logFile" accept=".txt">
-    <div id="content"></div>
     <div id="output"></div>
+
+    <script src="app.js"></script>
 </body>
 </html>
