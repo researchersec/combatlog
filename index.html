@@ -2,31 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WoW Combat Log Parser</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
         .card {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 15px;
-            margin: 10px 0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+            display: inline-block;
         }
-        .card h3 {
-            margin-top: 0;
+        .fight {
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
     <h1>WoW Combat Log Parser</h1>
-    <input type="file" id="logFile" />
-    <input type="file" id="namesFile" />
-    <input type="file" id="itemsFile" />
-    <input type="file" id="enchantResistancesFile" />
+    <input type="file" id="logFileInput" accept=".txt">
     <div id="output"></div>
-    <script src="parser.js"></script>
+
+    <script src="app.js"></script>
 </body>
 </html>
