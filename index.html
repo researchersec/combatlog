@@ -3,59 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WoW Combat Log Analyzer</title>
+    <title>Combat Log Viewer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
         }
-        #container {
+        .container {
             max-width: 800px;
             margin: 0 auto;
         }
-        input[type="file"] {
-            margin-bottom: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .file-input {
             margin: 20px 0;
         }
-        th, td {
-            padding: 10px;
-            text-align: left;
+        .encounter, .player {
             border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
         }
-        th {
-            background-color: #f4f4f4;
+        .player {
+            background-color: #f9f9f9;
+        }
+        .resistance {
+            margin: 5px 0;
         }
     </style>
 </head>
 <body>
-    <div id="container">
-        <h1>WoW Combat Log Analyzer</h1>
-        <input type="file" id="logInput" accept=".txt" />
-        <input type="file" id="csvInput" accept=".csv" />
-        <table id="results">
-            <thead>
-                <tr>
-                    <th>Combatant Name</th>
-                    <th>Item ID</th>
-                    <th>Item Level</th>
-                    <th>Enchant</th>
-                    <th>Gem1</th>
-                    <th>Gem2</th>
-                    <th>Display</th>
-                    <th>Resistances[2]</th>
-                    <th>Enchant Resistances</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Results will be injected here -->
-            </tbody>
-        </table>
+    <div class="container">
+        <h1>Combat Log Viewer</h1>
+        <input type="file" id="logFileInput" class="file-input" accept=".txt" />
+        <div id="content"></div>
     </div>
-    <script src="analyzer.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
