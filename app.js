@@ -1,169 +1,105 @@
-document.getElementById('logFileInput').addEventListener('change', handleFileSelect);
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('logFile');
 
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (file) {
+    fileInput.addEventListener('change', handleFileSelect, false);
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
         const reader = new FileReader();
-        reader.onload = function(e) {
-            const logContent = e.target.result;
-            parseLogFile(logContent);
+        reader.onload = function(event) {
+            const contents = event.target.result;
+            parseLogFile(contents);
         };
         reader.readAsText(file);
     }
-}
 
-async function parseLogFile(logContent) {
-    const combatantNames = await fetchJSON('combatantNames.json');
-    const itemEnchantResistances = await fetchJSON('itemEnchantResistances.json');
-    const itemSparseData = await fetchCSV('itemsparse.csv');
+    function parseLogFile(contents) {
+        const lines = contents.split('\n');
+        const players = {};
 
-    const encounters = [];
-    const lines = logContent.split('\n');
-
-    let currentEncounter = null;
-    for (const line of lines) {
-        if (line.includes('ENCOUNTER_START')) {
-            currentEncounter = { start: line, players: [] };
-        } else if (line.includes('ENCOUNTER_END')) {
-            if (currentEncounter) {
-                currentEncounter.end = line;
-                encounters.push(currentEncounter);
-                currentEncounter = null;
-            }
-        } else if (line.includes('COMBATANT_INFO') && currentEncounter) {
-            const combatantInfo = parseCombatantInfo(line, combatantNames, itemSparseData, itemEnchantResistances);
-            currentEncounter.players.push(combatantInfo);
-        }
-    }
-
-    displayEncounters(encounters);
-}
-
-function fetchJSON(url) {
-    return fetch(url).then(response => response.json());
-}
-
-function fetchCSV(url) {
-    return fetch(url).then(response => response.text()).then(csvToJSON);
-}
-
-function csvToJSON(csv) {
-    const lines = csv.split('\n');
-    const result = [];
-    const headers = lines[0].split(',');
-
-    for (let i = 1; i < lines.length; i++) {
-        const obj = {};
-        const row = lines[i].split(',');
-        headers.forEach((header, j) => {
-            obj[header] = row[j];
-        });
-        result.push(obj);
-    }
-    return result;
-}
-
-function parseCombatantInfo(line, combatantNames, itemSparseData, itemEnchantResistances) {
-    const parts = line.split(',');
-    const playerId = parts[1];
-    const gearInfoMatch = line.match(/\[(.*?)\]$/);
-
-    if (!gearInfoMatch) {
-        console.error('Invalid gear info format:', line);
-        return { playerId, playerName: combatantNames[playerId] || playerId, resistances: 0, items: [] };
-    }
-
-    const gearInfoString = gearInfoMatch[1];
-    const gearInfo = parseGearInfo(gearInfoString);
-    const playerName = combatantNames[playerId] || playerId;
-
-    const resistances = gearInfo.reduce((totalResistance, item) => {
-        const itemId = item[0];
-        const itemData = itemSparseData.find(data => data.ID == itemId);
-        if (itemData) {
-            const resistance = parseInt(itemData['Resistances[2]'], 10) || 0;
-            totalResistance += resistance;
-
-            if (item[2].length > 0) {
-                const enchantmentId = item[2][0];
-                if (itemEnchantResistances[enchantmentId]) {
-                    totalResistance += itemEnchantResistances[enchantmentId];
+        lines.forEach(line => {
+            if (line.includes('COMBATANT_INFO')) {
+                try {
+                    const player = parseCombatantInfo(line);
+                    players[player.id] = player;
+                } catch (error) {
+                    console.error('Invalid gear info format:', line, error);
                 }
             }
-        }
-        return totalResistance;
-    }, 0);
-
-    const items = gearInfo.map(item => {
-        const itemId = item[0];
-        return {
-            id: itemId,
-            enchantmentId: item[2].length > 0 ? item[2][0] : null,
-            icon: `https://wow.zamimg.com/images/wow/icons/large/${itemId}.jpg`
-        };
-    });
-
-    return { playerId, playerName, resistances, items };
-}
-
-function parseGearInfo(gearInfoString) {
-    return gearInfoString.split('),(').map(itemString => {
-        return itemString.replace(/[\[\]()]/g, '').split(',').map(value => {
-            return value.includes('(') ? value.split('(').map(val => val.replace(')', '')) : value;
         });
-    });
-}
 
-function displayEncounters(encounters) {
-    const contentDiv = document.getElementById('content');
-    contentDiv.innerHTML = '';
+        displayPlayers(players);
+    }
 
-    encounters.forEach(encounter => {
-        const encounterDiv = document.createElement('div');
-        encounterDiv.classList.add('encounter');
+    function parseCombatantInfo(line) {
+        const parts = line.split(',');
 
-        const encounterTitle = document.createElement('h2');
-        encounterTitle.textContent = `Encounter: ${encounter.start.split(',')[2]}`;
-        encounterDiv.appendChild(encounterTitle);
+        const id = parts[1];
+        const specID = parts[2];
+        const gear = parts[24];
+        const talents = parts[23];
 
-        encounter.players.forEach(player => {
-            const playerDiv = document.createElement('div');
-            playerDiv.classList.add('player');
+        const items = parseGear(gear);
 
-            const playerName = document.createElement('h3');
-            playerName.textContent = `Player: ${player.playerName}`;
-            playerDiv.appendChild(playerName);
+        return { id, specID, items, talents };
+    }
 
-            const resistanceInfo = document.createElement('p');
-            resistanceInfo.classList.add('resistance');
-            resistanceInfo.textContent = `Resistance: ${player.resistances}`;
-            playerDiv.appendChild(resistanceInfo);
+    function parseGear(gearString) {
+        const items = [];
+        const itemPattern = /\((\d+),(\d+),\(([\d,]*)\),\(\),\(\)\)/g;
+        let match;
 
+        while ((match = itemPattern.exec(gearString)) !== null) {
+            const itemId = match[1];
+            const itemLevel = match[2];
+            const itemEnchant = match[3].split(',').filter(Boolean);
+
+            items.push({ id: itemId, level: itemLevel, enchant: itemEnchant });
+        }
+
+        return items;
+    }
+
+    function displayPlayers(players) {
+        const container = document.getElementById('output');
+        container.innerHTML = '';
+
+        for (const playerId in players) {
+            const player = players[playerId];
+            const playerElement = document.createElement('div');
+            playerElement.className = 'player';
+
+            const title = document.createElement('h2');
+            title.textContent = `Player: ${playerId}, Spec: ${player.specID}`;
+            playerElement.appendChild(title);
+
+            const gearList = document.createElement('ul');
             player.items.forEach(item => {
-                const itemDiv = document.createElement('div');
-                itemDiv.classList.add('item');
-
-                const itemIcon = document.createElement('img');
-                itemIcon.src = item.icon;
-                itemDiv.appendChild(itemIcon);
-
-                const itemLink = document.createElement('a');
-                itemLink.classList.add('item-link');
-                itemLink.href = `https://www.wowhead.com/item=${item.id}`;
-                itemLink.target = '_blank';
-                itemLink.rel = 'noopener noreferrer';
-                itemLink.textContent = `Item ${item.id}`;
-                itemDiv.appendChild(itemLink);
-
-                playerDiv.appendChild(itemDiv);
+                const listItem = document.createElement('li');
+                const iconUrl = `https://wow.zamimg.com/images/wow/icons/large/${getItemIcon(item.id)}.jpg`;
+                listItem.innerHTML = `
+                    <a href="https://www.wowhead.com/item=${item.id}" data-wowhead="item=${item.id}">
+                        <img src="${iconUrl}" alt="Item Icon" width="24" height="24"> 
+                        Item ID: ${item.id}, Level: ${item.level}, Enchants: ${item.enchant.join(', ')}
+                    </a>`;
+                gearList.appendChild(listItem);
             });
 
-            encounterDiv.appendChild(playerDiv);
-        });
+            playerElement.appendChild(gearList);
+            container.appendChild(playerElement);
+        }
 
-        contentDiv.appendChild(encounterDiv);
-    });
+        // Apply wowhead tooltips
+        if (typeof $WowheadPower != 'undefined') {
+            $WowheadPower.refreshLinks();
+        }
+    }
 
-    // Apply WoWHead tooltips
-    WH.Tooltips.refresh();
-}
+    function getItemIcon(itemId) {
+        // You might need to map item IDs to icon names.
+        // Here, it's just a placeholder to demonstrate how you could get the item icon.
+        return itemId;
+    }
+});
