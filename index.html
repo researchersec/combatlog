@@ -2,23 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WoW Log Analyzer</title>
+    <title>WoW Combat Log Parser</title>
     <style>
-        body { font-family: Arial, sans-serif; }
-        .fight { margin-bottom: 20px; }
-        .player { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
-        .player img { vertical-align: middle; }
-        .item { display: inline-block; margin-right: 10px; }
-        .item img { width: 32px; height: 32px; }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .card h3 {
+            margin-top: 0;
+        }
     </style>
-    <script src="https://wow.zamimg.com/widgets/power.js"></script>
 </head>
 <body>
-    <h1>World of Warcraft Log Analyzer</h1>
-    <input type="file" id="logFile" accept=".txt">
+    <h1>WoW Combat Log Parser</h1>
+    <input type="file" id="logFile" />
+    <input type="file" id="namesFile" />
+    <input type="file" id="itemsFile" />
+    <input type="file" id="enchantResistancesFile" />
     <div id="output"></div>
-
-    <script src="app.js"></script>
+    <script src="parser.js"></script>
 </body>
 </html>
