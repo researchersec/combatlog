@@ -57,11 +57,24 @@ async function displayEncounters(encounters) {
             playerDiv.className = 'card';
             playerDiv.innerHTML = `<h3>${playerName}</h3>`;
 
+            let totalResistance = 0;
+            let totalEnchantResistance = 0;
+
             playerInfo.gear.forEach(item => {
-                const itemInfo = itemSparse[item.id];
-                const resistance = itemInfo ? itemInfo['Resistances[2]'] : 0;
-                playerDiv.innerHTML += `<p>Item ID: ${item.id}, Resistance: ${resistance}</p>`;
+                const itemInfo = itemSparse[item.itemid];
+                const resistance = itemInfo ? itemInfo["Resistances[2]"] : 0;
+                const enchantResistance = itemEnchantResistances[item.enchant] || 0;
+                totalResistance += resistance;
+                totalEnchantResistance += enchantResistance;
+
+                playerDiv.innerHTML += `
+                    <p>Item ID: ${item.itemid}, Item Level: ${item.ilvl}, Enchant: ${item.enchant}, Gem1: ${item.gem1}, Gem2: ${item.gem2}</p>
+                    <p>Display: ${itemInfo ? itemInfo.Display_lang : 'Unknown'}, Resistances[2]: ${resistance}, Enchant Resistances: ${enchantResistance}</p>
+                `;
             });
+
+            playerDiv.innerHTML += `<p>Total Resistances[2]: ${totalResistance}</p>`;
+            playerDiv.innerHTML += `<p>Total Enchant Resistances: ${totalEnchantResistance}</p>`;
 
             encounterDiv.appendChild(playerDiv);
         });
@@ -71,14 +84,26 @@ async function displayEncounters(encounters) {
 }
 
 function parseCombatantInfo(line) {
-    const parts = line.split(',');
-    const id = parts[1];
-    const gearString = parts[25];
-    const gear = gearString.substring(2, gearString.length - 2).split('),(').map(g => {
-        const gearParts = g.split(',');
-        return { id: gearParts[0], resistance: gearParts[1] };
-    });
-    return { id, gear };
+    const combatantPattern = /COMBATANT_INFO,(.*?),0,(\d+),(\d+),(\d+),(\d+),(\d+),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,(\d+),0,.*?\(\d+,\d+,\d+\),\(\),\[(.*?)\]/;
+    const itemPattern = /\((\d+),(\d+),\((\d*),(\d*),(\d*)\),\(\),\(\)\)/;
+
+    const match = combatantPattern.exec(line);
+    const combatant_id = match[1];
+    const items_info = match[8];
+
+    const gear = [];
+    let itemMatch;
+    while ((itemMatch = itemPattern.exec(items_info)) !== null) {
+        gear.push({
+            itemid: itemMatch[1],
+            ilvl: itemMatch[2],
+            enchant: itemMatch[3],
+            gem1: itemMatch[4],
+            gem2: itemMatch[5]
+        });
+    }
+
+    return { id: combatant_id, gear };
 }
 
 function parseCSV(csvText) {
