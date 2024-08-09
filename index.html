@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Resistance Summary</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Player Resistance Summary</h1>
+        <div id="playerCards" class="row">
+            <!-- Player cards will be dynamically inserted here by JavaScript -->
+        </div>
+        <h2 class="mb-4">Encounter Summary</h2>
+        <div id="encounterSummary">
+            <!-- Encounter summaries will be dynamically inserted here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Custom JavaScript to load and display JSON data -->
+    <script>
+        // Load JSON data and render the player cards and encounter summary
+        fetch('combatant_data.json')
+            .then(response => response.json())
+            .then(combatantData => {
+                renderPlayerCards(combatantData);
+            });
+
+        fetch('encounter_data.json')
+            .then(response => response.json())
+            .then(encounterData => {
+                renderEncounterSummary(encounterData);
+            });
+
+        function renderPlayerCards(players) {
+            const playerCardsContainer = document.getElementById('playerCards');
+            for (const [playerId, playerData] of Object.entries(players)) {
+                const cardHTML = `
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">${playerData.combatant_name || 'Unknown'}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">ID: ${playerId}</h6>
+                            <p class="card-text"><strong>Total Resistance:</strong> ${playerData.total_resistance}</p>
+                            <h6>Gear:</h6>
+                            <ul class="list-group list-group-flush">
+                                ${playerData.gear.map(item => `
+                                    <li class="list-group-item">
+                                        ${item.item_name} (Resistance: ${item.total_resistance})
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                `;
+                playerCardsContainer.insertAdjacentHTML('beforeend', cardHTML);
+            }
+        }
+
+        function renderEncounterSummary(encounters) {
+            const encounterSummaryContainer = document.getElementById('encounterSummary');
+            for (const [encounterId, encounterData] of Object.entries(encounters)) {
+                const averageResistance = (encounterData.total_resistance / encounterData.players.length).toFixed(2);
+                const summaryHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">${encounterData.name}</h5>
+                        <p class="card-text"><strong>Encounter ID:</strong> ${encounterId}</p>
+                        <p class="card-text"><strong>Total Resistance (All Players):</strong> ${encounterData.total_resistance}</p>
+                        <p class="card-text"><strong>Average Resistance (All Players):</strong> ${averageResistance}</p>
+                        <p class="card-text"><strong>Players Involved:</strong> ${encounterData.players.map(playerId => combatantNames[playerId] || 'Unknown').join(', ')}</p>
+                    </div>
+                </div>
+                `;
+                encounterSummaryContainer.insertAdjacentHTML('beforeend', summaryHTML);
+            }
+        }
+
+        // Load combatant names for player display in encounters
+        const combatantNames = {}; // Replace this with actual combatant names if necessary
+        fetch('combatantNames.json')
+            .then(response => response.json())
+            .then(names => {
+                Object.assign(combatantNames, names);
+            });
+    </script>
+</body>
+</html>
