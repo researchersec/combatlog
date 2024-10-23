@@ -1,0 +1,32 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    padding: 20px;
+    margin: 0;
+}
+input[type="file"] {
+    margin: 10px 0;
+}
+.fight {
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.player {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #eee;
+    border-radius: 5px;
+}
+.item {
+    margin-right: 10px;
+}
+.item img {
+    vertical-align: middle;
+    width: 32px;
+    height: 32px;
+}
